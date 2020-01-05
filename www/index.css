@@ -1,0 +1,157 @@
+*, *:before, *:after {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #333;
+}
+
+input {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border: #ddd 1px solid;
+  border-radius: 3px;
+  font: inherit;
+}
+
+.toast-progress {
+  top: 53px;
+}
+
+/* ----------------------------------------------
+ * header
+ * ------------------------------------------- */
+
+header {
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  border-bottom: #ddd 1px solid;
+  display: flex;
+  align-items: center;
+}
+
+header>div {
+  width: 54px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+header>div.appname {
+  flex: 1;
+  font-weight: 700;
+  justify-content: flex-start;
+}
+
+header>div:active {
+  background: #eee;
+}
+
+header>div.appname:active {
+  background: none;
+}
+
+/* ----------------------------------------------
+ * main
+ * ------------------------------------------- */
+
+main {
+  position: fixed;
+  top: 54px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+}
+
+main .item {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  padding: 0 20px;
+  border-bottom: #eee 1px solid;
+}
+
+main .item .filename {
+  flex: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 0 10px;
+}
+
+main .item .metadata {
+  color: #ccc;
+  font-size: 12px;
+  text-align: right;
+}
+
+main .item:active {
+  background: #eee;
+}
+
+main .item img {
+  width: 24px;
+  height: 24px;
+}
+
+/* ----------------------------------------------
+ * Toast pages
+ * ------------------------------------------- */
+
+#text-page pre {
+  padding: 20px;
+}
+
+#image-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+#image-page img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ----------------------------------------------
+ * Icons
+ * ------------------------------------------- */
+
+i {
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+i.back {
+  background-image: url(image/back.png);
+}
+
+i.add {
+  background-image: url(image/add.png);
+}
+
+i.upload {
+  background-image: url(image/upload.png);
+}
+
+i.sort {
+  background-image: url(image/sort.png);
+}
