@@ -16,27 +16,20 @@ window.onerror = function(msg, url, line) {
 
 const SERVER_KEY = 'SERVER_KEY'
 const FILE_ICONS = {
-  audio: ['mp3', 'flac', 'ape'],
-  code: ['js', 'java', 'php'],
-  font: ['ttf', 'otf'],
-  image: ['png', 'jpg', 'jpeg'],
-  video: ['mp4'],
-  zip: ['zip','rar'],
-  '': ['ai', 'apk', 'doc', 'exe', 'pdf', 'ppt', 'psd', 'swf', 'torrent', 'txt', 'vsd', 'xls']
+  text:  ['ass', 'log', 'md', 'rss', 'srt', 'ssa', 'txt'],
+  code:  ['as', 'asp', 'bat', 'c', 'cs', 'css', 'h', 'htm', 'html', 'ini', 'java', 'js', 'json', 'php', 'prop', 'py', 'reg', 'sh', 'sql', 'wxml', 'wxss', 'xhtml', 'xml'],
+  image: ['bmp', 'cur', 'eps', 'gif', 'ico', 'jpe', 'jpg', 'jpeg', 'jpz', 'png', 'svg', 'tif', 'tiff'],
+  audio: ['aac', 'aiff', 'ape', 'caf', 'flac', 'm3u', 'm4a', 'mp3', 'ogg', 'wav', 'wma'],
+  video: ['3gp', 'asf', 'avi', 'flv', 'm3u8', 'm4u', 'm4v', 'mkv', 'mov', 'mp4', 'mpa', 'mpe', 'mpeg', 'mpg', 'ogm', 'rm', 'rmvb', 'vob', 'webm', 'wmv'],
+  font:  ['eot', 'otf', 'ttf', 'woff', 'woff2'],
+  zip:   ['7z', 'gz', 'gzip', 'jar', 'rar', 'tar', 'z', 'zip'],
+  '':    ['ai', 'apk', 'doc', 'exe', 'pdf', 'ppt', 'psd', 'swf', 'torrent', 'vsd', 'xls']
 }
 
 new Que({
   data: {
-    filelist: [
-    {name:'a.txt'},
-    {name:'a.jpg'}
-    ],
+    filelist: [],
     currentPath: '',
-    page: {
-      fileName: '',
-      filePath: '',
-      content: ''
-    },
   },
 
   onDeviceReady() {
