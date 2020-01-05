@@ -298,16 +298,21 @@ window.Toast = {
     return instance
   },
 
-  page(element) {
-    if (element.loaded) return
-    element.loaded = true
-    element.addClass('toast-mask')
-    element.addClass('toast-page')
+  page(container) {
+    if (!container._paged) {
+      container._paged = true
+      container.addClass('toast-mask')
 
-    return {
-      show: () => element.addClass('toast-slide-left'),
-      hide: () => element.removeClass('toast-slide-left')
+      container.show = function() {
+        this.removeClass('toast-slide-right')
+        this.addClass('toast-slide-left')
+      }
+      container.hide = function() {
+        this.removeClass('toast-slide-left')
+        this.addClass('toast-slide-right')
+      }
     }
+    return container
   }
 
 }

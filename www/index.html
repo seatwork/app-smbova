@@ -30,27 +30,17 @@
   <div class="item" foreach="(item, index) in filelist" data-index="{{ index }}"
     @click="onOpen" @hammer.press="onAction">
 
-    <img data-src="image/file/{{ item.isDirectory ? 'folder' : getFileIcon(item.name) }}.png"/>
+    <img class="icon" data-src="image/file/{{ item.isDirectory ? 'folder' : getFileIcon(item.name) }}.png"/>
     <div class="filename">{{ item.name }}</div>
 
     <div class="metadata">
       <div>{{ formatSize(item.size) }}</div>
       <div>{{ formatTime(item.lastModified) }}</div>
     </div>
+
+    <div class="viewer"></div>
   </div>
 </main>
-
-<div id="text-page">
-  <header>
-    <div onclick="window.textPage.hide()"><i class="back"></i></div>
-    <div class="appname">{{ page.fileName }}</div>
-  </header>
-  <main>
-    <pre>{{ page.content }}</pre>
-  </main>
-</div>
-
-<div id="image-page"><img/></div>
 
 </body>
 </html>

@@ -70,7 +70,7 @@ header>div.appname:active {
  * ------------------------------------------- */
 
 main {
-  position: fixed;
+  position: absolute;
   top: 54px;
   bottom: 0;
   left: 0;
@@ -104,7 +104,7 @@ main .item:active {
   background: #eee;
 }
 
-main .item img {
+main .item .icon {
   width: 24px;
   height: 24px;
 }
@@ -113,18 +113,22 @@ main .item img {
  * Toast pages
  * ------------------------------------------- */
 
-#text-page pre {
+.text-page {
+  background: #fff;
+}
+
+.text-page pre {
   padding: 20px;
 }
 
-#image-page {
+.image-page {
   display: flex;
   justify-content: center;
   align-items: center;
   background: #000;
 }
 
-#image-page img {
+.image-page img {
   max-width: 100%;
   max-height: 100%;
 }

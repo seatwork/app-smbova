@@ -39,11 +39,6 @@ new Que({
     },
   },
 
-  ready() {
-    window.textPage = Toast.page(document.querySelector('#text-page'))
-    window.imagePage = Toast.page(document.querySelector('#image-page'))
-  },
-
   onDeviceReady() {
     samba.auth('xehu', 'linsang')
     this.root = 'smb://10.0.0.2/'
@@ -57,7 +52,7 @@ new Que({
     if (entry.isDirectory) {
       this._openDirectory(entry.path)
     } else {
-      this._openFile(entry)
+      this._openFile(entry, e.currentTarget)
     }
   },
 
@@ -146,13 +141,13 @@ new Que({
     })
   },
 
-  _openFile(file) {
+  _openFile(file, el) {
     const type = this.getFileIcon(file.name)
     if (type == 'txt' || type == 'code') {
-      this._openText(file)
+      this._openText(file, el)
     } else
     if (type == 'image') {
-      this._openImage(file)
+      this._openImage(file, el)
     } else {
       Toast.info('该文件无法直接打开');
     }
@@ -162,32 +157,55 @@ new Que({
   // File viewer
   /////////////////////////////////////////////////////////
 
-  _openText(file) {
-    window.textPage.show()
-    window._openedPage = window.textPage
+  _buildViewer(el, className) {
+    const viewer = Toast.page(el.querySelector('.viewer'))
+    viewer.addClass(className)
+    viewer.show()
+    window._openedPage = viewer
+    return viewer
+  },
 
-    this.page.fileName = file.name
+  _openText(file, el) {
+    const viewer = this._buildViewer(el, 'text-page')
+    if (viewer.loaded) return
+
     samba.read(file.path, bytes => {
-      this.page.content = new TextDecoder("utf-8").decode(new Uint8Array(bytes))
+      const content = new TextDecoder("utf-8").decode(new Uint8Array(bytes))
+      viewer.loaded = true
+      viewer.appendChild($(`
+        <div>
+          <header>
+            <div class="backBtn"><i class="back"></i></div>
+            <div class="appname">${file.name}</div>
+          </header>
+          <main>
+            <pre>${content}</pre>
+          </main>
+        </div>
+      `))
+      viewer.querySelector('.backBtn').on('click', e => {
+        e.stopPropagation()
+        this._pressBack()
+      })
     })
   },
 
-  _openImage(file) {
-    const image = document.querySelector('#image-page img')
-    image.removeAttribute('src')
+  _openImage(file, el) {
+    const viewer = this._buildViewer(el, 'image-page')
+    if (viewer.loaded) return
 
-    window.imagePage.show()
-    window._openedPage = window.imagePage
     Toast.loading.start()
-
     samba.read(file.path, bytes => {
       const blob = new Blob([bytes], { type: 'image/' + this._getExtName(file.name) })
       const url = URL.createObjectURL(blob)
 
-      image.setAttribute('src', url)
+      const image = new Image()
+      image.src = url
+      viewer.appendChild(image)
       image.onload = function() {
-        URL.revokeObjectURL(url)
         Toast.loading.done()
+        viewer.loaded = true
+        URL.revokeObjectURL(url)
       }
     })
   },
@@ -196,15 +214,17 @@ new Que({
   // Document events
   /////////////////////////////////////////////////////////
 
+  _pressBack() {
+    if (window._openedPage) {
+      window._openedPage.hide()
+      window._openedPage = null
+    } else {
+      this.onBack()
+    }
+  },
+
   _addBackListener() {
-    document.addEventListener('backbutton', () => {
-      if (window._openedPage) {
-        window._openedPage.hide()
-        window._openedPage = null
-      } else {
-        this.onBack()
-      }
-    })
+    document.addEventListener('backbutton', () => this._pressBack())
   },
 
   /////////////////////////////////////////////////////////
