@@ -304,8 +304,11 @@ window.Toast = {
     if (!container._paged) {
       container._paged = true
       container.addClass('toast-mask')
+      container.display = getComputedStyle(container, null)['display']
+      container.style.display = 'none'
 
       container.show = function() {
+        container.style.display = this.display
         this.removeClass('toast-slide-right')
         this.addClass('toast-slide-left')
       }

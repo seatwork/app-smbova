@@ -163,3 +163,7 @@ i.upload {
 i.sort {
   background-image: url(image/sort.png);
 }
+
+i.save {
+  background-image: url(image/save.png);
+}

@@ -43,6 +43,10 @@ new Que({
     currentPath: '',
   },
 
+  ready() {
+    window.textPage = Toast.page(document.querySelector('.text-page'))
+  },
+
   onDeviceReady() {
     samba.auth('xehu', 'linsang')
     this.root = 'smb://10.0.0.2/'
@@ -226,27 +230,15 @@ new Que({
   },
 
   _openText(file, el) {
-    const viewer = this._buildViewer(el, 'text-page')
-    if (viewer.loaded) return
+    textPage.show()
+    textPage.querySelector('.appname').innerHTML = file.name
+    window._openedPage = textPage
 
+    Toast.progress.start()
     samba.read(file.path, bytes => {
       const content = new TextDecoder("utf-8").decode(new Uint8Array(bytes))
-      viewer.loaded = true
-      viewer.appendChild($(`
-        <div>
-          <header>
-            <div class="backBtn"><i class="back"></i></div>
-            <div class="appname">${file.name}</div>
-          </header>
-          <main>
-            <pre contenteditable="true">${content}</pre>
-          </main>
-        </div>
-      `))
-      viewer.querySelector('.backBtn').on('click', e => {
-        e.stopPropagation()
-        this.onBack()
-      })
+      textPage.querySelector('pre').innerHTML = content
+      Toast.progress.done()
     })
   },
 

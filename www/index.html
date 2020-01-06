@@ -5,7 +5,7 @@
   <meta name="format-detection" content="telephone=no"/>
   <meta name="msapplication-tap-highlight" content="no"/>
   <meta name="viewport" content="initial-scale=1,width=device-width,viewport-fit=cover"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src *; media-src 'self' data: blob: filesystem: content: cdvfile: *; img-src 'self' data: blob: filesystem: content: cdvfile: *;">
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src *; media-src 'self' data: blob: filesystem: content: cdvfile: *; img-src 'self' data: blob: filesystem: content: cdvfile: *;">
   <link rel="stylesheet" href="src/toast.css"/>
   <link rel="stylesheet" href="src/pull-refresh.css"/>
   <link rel="stylesheet" href="index.css"/>
@@ -41,6 +41,17 @@
     <div class="viewer"></div>
   </div>
 </main>
+
+<div class="text-page">
+  <header>
+    <div onclick="textPage.hide()"><i class="back"></i></div>
+    <div class="appname"></div>
+    <div @click="onSave"><i class="save"></i></div>
+  </header>
+  <main>
+    <pre contenteditable="true"></pre>
+  </main>
+</div>
 
 </body>
 </html>
