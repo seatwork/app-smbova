@@ -14,15 +14,6 @@ body {
   color: #333;
 }
 
-input {
-  width: 100%;
-  margin-top: 10px;
-  padding: 8px;
-  border: #ddd 1px solid;
-  border-radius: 3px;
-  font: inherit;
-}
-
 .toast-progress {
   top: 53px;
 }
@@ -113,7 +104,7 @@ main .item .icon {
  * Toast pages
  * ------------------------------------------- */
 
-.text-page {
+.text-page, .server-page {
   background: #fff;
 }
 
@@ -135,6 +126,17 @@ main .item .icon {
 .image-page img {
   max-width: 100%;
   max-height: 100%;
+}
+
+.server-page .item>div {
+  width: 80px;
+}
+
+.server-page input {
+  flex: 1;
+  font: inherit;
+  border: 0;
+  padding: 5px;
 }
 
 /* ----------------------------------------------

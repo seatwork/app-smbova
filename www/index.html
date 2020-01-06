@@ -38,7 +38,7 @@
       <div>{{ formatTime(item.lastModified) }}</div>
     </div>
 
-    <div class="viewer"></div>
+    <div class="image-page"></div>
   </div>
 </main>
 
@@ -46,10 +46,40 @@
   <header>
     <div onclick="textPage.hide()"><i class="back"></i></div>
     <div class="appname"></div>
-    <div @click="onSave"><i class="save"></i></div>
+    <div @click="onSaveText"><i class="save"></i></div>
   </header>
   <main>
     <pre contenteditable="true"></pre>
+  </main>
+</div>
+
+<div class="server-page">
+  <header>
+    <div onclick="serverPage.hide()"><i class="back"></i></div>
+    <div class="appname">设置服务器</div>
+    <div @click="onSaveServer"><i class="save"></i></div>
+  </header>
+  <main>
+    <div class="item">
+      <div>名称：</div>
+      <input model="server.name" placeholder="0.0.0.0" />
+    </div>
+    <div class="item">
+      <div>地址：</div>
+      <input model="server.address" placeholder="0.0.0.0" />
+    </div>
+    <div class="item">
+      <div>用户名：</div>
+      <input model="server.username" placeholder="可选" />
+    </div>
+    <div class="item">
+      <div>密码：</div>
+      <input model="server.password" placeholder="可选" type="password" />
+    </div>
+    <div class="item">
+      <div>MAC：</div>
+      <input model="server.mac" placeholder="可选" />
+    </div>
   </main>
 </div>
 
