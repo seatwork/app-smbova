@@ -11,10 +11,11 @@ window.onerror = function(msg, url, line) {
 }
 
 ///////////////////////////////////////////////////////////
-// Que Framework
+// Constants
 ///////////////////////////////////////////////////////////
 
 const SERVER_KEY = 'SERVER_KEY'
+
 const FILE_ICONS = {
   text:  ['ass', 'log', 'md', 'rss', 'srt', 'ssa', 'txt'],
   code:  ['as', 'asp', 'bat', 'c', 'cs', 'css', 'h', 'htm', 'html', 'ini', 'java', 'js', 'json', 'php', 'prop', 'py', 'reg', 'sh', 'sql', 'wxml', 'wxss', 'xhtml', 'xml'],
@@ -26,6 +27,16 @@ const FILE_ICONS = {
   '':    ['ai', 'apk', 'doc', 'exe', 'pdf', 'ppt', 'psd', 'swf', 'torrent', 'vsd', 'xls']
 }
 
+const SORT_ASCEND = {
+  name: false,
+  size: false,
+  lastModified: false
+}
+
+///////////////////////////////////////////////////////////
+// Que Framework
+///////////////////////////////////////////////////////////
+
 new Que({
   data: {
     filelist: [],
@@ -36,7 +47,8 @@ new Que({
     samba.auth('xehu', 'linsang')
     this.root = 'smb://10.0.0.2/'
     this._openDirectory(this.root)
-    this._addBackListener()
+
+    document.addEventListener('backbutton', () => this.onBack())
   },
 
   onOpen(e) {
@@ -50,47 +62,109 @@ new Que({
   },
 
   onBack() {
-    if (this.currentPath == this.root) {
-      navigator.app.exitApp()
-    } else {
-      let parentPath = this.currentPath.replace(/^(smb:\/\/.+\/)[^\/]+\/?$/, '$1')
+    if (window._openedPage) {
+      window._openedPage.hide()
+      window._openedPage = null
+    } else
+    if (this.currentPath != this.root) {
+      const parentPath = this.currentPath.replace(/^(smb:\/\/.+\/)[^\/]+\/?$/, '$1')
       this._openDirectory(parentPath)
+    } else {
+      navigator.app.exitApp()
     }
   },
 
   onStatusTop() {
-    const main = document.querySelectorAll('main')
+    const main = document.querySelector('main')
     main.scrollTop = 0
   },
 
+  /////////////////////////////////////////////////////////
+  // Create entry actions
+  /////////////////////////////////////////////////////////
+
   onAdd() {
     Toast.actionSheet([{
-      label: '上传文件',
-      onClick: null
+      label: '上传图片',
+      onClick: () => {
+        navigator.camera.getPicture(uri => this._upload(uri), null, {
+          quality: 100,
+          mediaType: Camera.MediaType.ALLMEDIA,
+          sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+          destinationType: Camera.DestinationType.FILE_URI
+        })
+      }
+    }, {
+      label: '新建文本文件',
+      onClick: () => {
+        samba.mkfile(this.currentPath + '新建文本文件.txt', entry => {
+          this.filelist.push(entry)
+          Toast.success('新建成功')
+        }, err => {
+          Toast.error(err)
+        })
+      }
     }, {
       label: '新建文件夹',
-      onClick: null
-    }, {
-      label: '新建空文件',
-      onClick: null
+      onClick: () => {
+        samba.mkdir(this.currentPath + '新建文件夹/', entry => {
+          this.filelist.push(entry)
+          Toast.success('新建成功')
+        }, err => {
+          Toast.error(err)
+        })
+      }
     }, {
       label: '添加服务器',
       onClick: null
     }])
   },
 
+  _upload(uri) {
+    Toast.progress.start()
+      samba.upload(uri, this.currentPath, entry => {
+        this.filelist.push(entry)
+        Toast.success('上传成功')
+        Toast.progress.done()
+      }, err => {
+        Toast.error(err)
+        Toast.progress.done()
+      });
+  },
+
+  /////////////////////////////////////////////////////////
+  // Filelist sort actions
+  /////////////////////////////////////////////////////////
+
   onSort() {
     Toast.actionSheet([{
       label: '按文件名排序',
-      onClick: null
+      onClick: () => this._sortList('name')
     }, {
       label: '按时间排序',
-      onClick: null
+      onClick: () => this._sortList('lastModified')
     }, {
       label: '按大小排序',
-      onClick: null
+      onClick: () => this._sortList('size')
     }])
   },
+
+  _sortList(key) {
+    SORT_ASCEND[key] = !SORT_ASCEND[key]
+    Toast.info(SORT_ASCEND[key] ? '正序排列' : '倒序排列')
+
+    this.filelist.sort(function(a, b) {
+      if (SORT_ASCEND[key]) {
+        return a[key] > b[key] ? 1 : -1
+      } else {
+        return a[key] < b[key] ? 1 : -1
+      }
+    })
+  },
+
+  /////////////////////////////////////////////////////////
+  // Single entry actions
+  /////////////////////////////////////////////////////////
 
   onAction(e) {
     const index = e.currentTarget.dataset.index
@@ -98,25 +172,15 @@ new Que({
     navigator.vibrate(50)
 
     Toast.actionSheet([{
-      label: '下载到',
-      onClick: null
-    }, {
-      label: '复制到',
-      onClick: null
-    }, {
-      label: '移动到',
-      onClick: null
-    }, {
-      label: '重命名',
-      onClick: null
-    }, {
       label: '删除',
       onClick: () => {
-        samba.delete(file.path, () => {
-          Toast.success('删除成功')
-          this.filelist.splice(index, 1)
-        }, err => {
-          Toast.error(err)
+        Toast.confirm('删除操作不可恢复，确定继续吗？', () => {
+            samba.delete(file.path, () => {
+              this.filelist.splice(index, 1)
+              Toast.success('删除成功')
+            }, err => {
+              Toast.error(err)
+            })
         })
       }
     }])
@@ -136,11 +200,14 @@ new Que({
 
   _openFile(file, el) {
     const type = this.getFileIcon(file.name)
-    if (type == 'txt' || type == 'code') {
+    if (type == 'text' || type == 'code') {
       this._openText(file, el)
     } else
     if (type == 'image') {
       this._openImage(file, el)
+    } else
+    if (type == 'video' || type == 'audio') {
+      this._openVideo(file, el)
     } else {
       Toast.info('该文件无法直接打开');
     }
@@ -172,13 +239,13 @@ new Que({
             <div class="appname">${file.name}</div>
           </header>
           <main>
-            <pre>${content}</pre>
+            <pre contenteditable="true">${content}</pre>
           </main>
         </div>
       `))
       viewer.querySelector('.backBtn').on('click', e => {
         e.stopPropagation()
-        this._pressBack()
+        this.onBack()
       })
     })
   },
@@ -194,30 +261,79 @@ new Que({
 
       const image = new Image()
       image.src = url
-      viewer.appendChild(image)
       image.onload = function() {
         Toast.loading.done()
+        viewer.appendChild(image)
         viewer.loaded = true
         URL.revokeObjectURL(url)
       }
     })
   },
 
-  /////////////////////////////////////////////////////////
-  // Document events
-  /////////////////////////////////////////////////////////
+  _openVideo(file, el) {
+    const viewer = this._buildViewer(el, 'image-page')
+    if (viewer.loaded) return
 
-  _pressBack() {
-    if (window._openedPage) {
-      window._openedPage.hide()
-      window._openedPage = null
-    } else {
-      this.onBack()
-    }
-  },
+    // const mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
+    // const mediaSource = new MediaSource()
+    // const url = URL.createObjectURL(mediaSource)
 
-  _addBackListener() {
-    document.addEventListener('backbutton', () => this._pressBack())
+    // const video = $(`<video src="${url}" controls></video>`)
+    // viewer.appendChild(video)
+    // viewer.loaded = true
+    // video.onloadedmetadata = function(){
+    //   alert(123)
+    // }
+    // video.onerror = function(err, a){
+    //   Toast.error('err')
+    // }
+
+    // mediaSource.addEventListener('sourceopen', () => {
+    //   const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec)
+    //   // sourceBuffer.addEventListener("updateend", () => {
+    //   //   video.play()
+    //   //   mediaSource.endOfStream()
+    //   //   // URL.revokeObjectURL(video.src)
+    //   // })
+    //   Toast.success(123)
+
+    //   samba.read(file.path, bytes => {
+    //     Toast.success(bytes)
+    //     var arrayBuffer = new ArrayBuffer(bytes.length);
+    //     var bufferView = new Uint8Array(arrayBuffer);
+    //     for (i = 0; i < bytes.length; i++) {
+    //       bufferView[i] = bytes[i];
+    //     }
+
+    //     sourceBuffer.appendBuffer((bufferView))
+    //   })
+    // })
+
+    samba.read(file.path, bytes => {
+
+        var arrayBuffer = new ArrayBuffer(bytes.byteLength);
+        var bufferView = new Uint8Array(arrayBuffer);
+        for (i = 0; i < bytes.byteLength; i++) {
+          bufferView[i] = bytes[i];
+        }
+
+      const mime = this.getFileIcon(file.name) + '/' + this._getExtName(file.name)
+      const blob = new Blob([new Uint8Array(bytes)], { type: mime })
+      let url = URL.createObjectURL(blob)
+      url = url.replace(/%3A/g, ':');
+      Toast.success(url)
+      const video = $(`<audio src="${url}" controls></audio>`)
+      viewer.appendChild(video)
+      viewer.loaded = true
+
+      // video.onloadedmetadata = function(){
+      //   Toast.success(123)
+      // }
+      // video.onerror = function(err, a){
+      //   Toast.error('video err')
+      // }
+    })
+
   },
 
   /////////////////////////////////////////////////////////
@@ -255,6 +371,10 @@ new Que({
   }
 
 })
+
+///////////////////////////////////////////////////////////
+// Directive Registration
+///////////////////////////////////////////////////////////
 
 Que.directive('hammer.press', (element, callback) => {
   const hammer = new Hammer(element)

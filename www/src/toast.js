@@ -174,9 +174,11 @@ window.Toast = {
    * }
    */
   info(message, options) {
-    // Check singleton instance
-    if (Toast._singleton) return
-    Toast._singleton = true
+    // Check and remove current instance
+    if (Toast._singleton) {
+      Toast._singleton.remove()
+      Toast._singleton = null
+    }
 
     // Merge custom options
     if (typeof options === 'number') {
@@ -197,13 +199,13 @@ window.Toast = {
     // Show instance
     document.body.appendChild(instance)
     instance.addClass('toast-fade-in')
+    Toast._singleton = instance
 
     // Auto hide delay
     setTimeout(() => {
       instance.addClass('toast-fade-out')
       instance.on('animationend', () => {
         instance.remove()
-        Toast._singleton = false
       })
     }, options.duration)
   },
@@ -284,9 +286,9 @@ window.Toast = {
     menus.push({ label: '取消', onClick: null })
     menus.forEach(item => {
       let menu = $(`<div class="toast-actionsheet-menu">${item.label}</div>`)
-      menu.on('click', () => {
+      menu.on('click', e => {
         instance.hide()
-        item.onClick && item.onClick()
+        item.onClick && item.onClick(e)
       })
       sheet.appendChild(menu)
     })

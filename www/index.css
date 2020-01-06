@@ -119,6 +119,10 @@ main .item .icon {
 
 .text-page pre {
   padding: 20px;
+  -moz-user-select: initial;
+  -webkit-touch-callout: initial;
+  -webkit-user-select: initial;
+  user-select: initial;
 }
 
 .image-page {
