@@ -225,7 +225,7 @@ class Observer {
               break
             case 'splice':
               if (arguments.length > 2) {
-                inserted = arguments.slice(2)
+                inserted = Array.prototype.slice.call(arguments, 2)
               }
               break
           }

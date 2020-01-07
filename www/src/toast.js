@@ -311,10 +311,12 @@ window.Toast = {
         container.style.display = this.display
         this.removeClass('toast-slide-right')
         this.addClass('toast-slide-left')
+        return this
       }
       container.hide = function() {
         this.removeClass('toast-slide-left')
         this.addClass('toast-slide-right')
+        return this
       }
     }
     return container

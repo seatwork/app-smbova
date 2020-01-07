@@ -14,8 +14,6 @@ window.onerror = function(msg, url, line) {
 // Constants
 ///////////////////////////////////////////////////////////
 
-const SERVER_KEY = 'SERVER_KEY'
-
 const FILE_ICONS = {
   text:  ['ass', 'log', 'md', 'rss', 'srt', 'ssa', 'txt'],
   code:  ['as', 'asp', 'bat', 'c', 'cs', 'css', 'h', 'htm', 'html', 'ini', 'java', 'js', 'json', 'php', 'prop', 'py', 'reg', 'sh', 'sql', 'wxml', 'wxss', 'xhtml', 'xml'],
@@ -27,11 +25,42 @@ const FILE_ICONS = {
   '':    ['ai', 'apk', 'doc', 'exe', 'pdf', 'ppt', 'psd', 'swf', 'torrent', 'vsd', 'xls']
 }
 
-const SORT_ASCEND = {
+const SmbType = {
+  FILE: 0,
+  DIRECTORY: 1,
+  SERVER: 4,
+  SHARE: 8
+}
+
+const AscendSort = {
   name: false,
   size: false,
   lastModified: false
 }
+
+const extname = function(name) {
+  const index = name.lastIndexOf('.')
+  return index > -1 ? name.substring(index + 1).toLowerCase() : ''
+}
+
+const Storage = {
+  key: 'SAMBA_SERVER_STORAGE_KEY',
+
+  save(obj) {
+    localStorage.setItem(this.key, JSON.stringify(obj))
+  },
+  get() {
+    return JSON.parse(localStorage.getItem(this.key)) || []
+  },
+  remove(index) {
+    const servers = this.get()
+    servers.splice(index, 1)
+    this.save(servers)
+  }
+}
+
+let entryStack = []
+let currentPage = null
 
 ///////////////////////////////////////////////////////////
 // Que Framework
@@ -40,42 +69,74 @@ const SORT_ASCEND = {
 new Que({
   data: {
     filelist: [],
-    currentPath: '',
+    server: {},
   },
 
   ready() {
     window.textPage = Toast.page(document.querySelector('.text-page'))
+    window.serverPage = Toast.page(document.querySelector('.server-page'))
+    this._listServers()
   },
 
   onDeviceReady() {
-    samba.auth('xehu', 'linsang')
-    this.root = 'smb://10.0.0.2/'
-    this._openDirectory(this.root)
-
     document.addEventListener('backbutton', () => this.onBack())
   },
 
   onOpen(e) {
     const index = e.currentTarget.dataset.index
     const entry = this.filelist[index]
-    if (entry.isDirectory) {
-      this._openDirectory(entry.path)
+
+    if (entry.type == SmbType.SERVER && entry.username && entry.password) {
+      samba.auth(entry.username, entry.password)
+    }
+    if (entry.type > 0) {
+      this._openDirectory(entry)
     } else {
       this._openFile(entry, e.currentTarget)
     }
   },
 
-  onBack() {
-    if (window._openedPage) {
-      window._openedPage.hide()
-      window._openedPage = null
-    } else
-    if (this.currentPath != this.root) {
-      const parentPath = this.currentPath.replace(/^(smb:\/\/.+\/)[^\/]+\/?$/, '$1')
-      this._openDirectory(parentPath)
+  _openDirectory(entry) {
+    let path
+    if (entry) {
+      path = entry.path
     } else {
-      navigator.app.exitApp()
+      const parentEntry = entryStack[entryStack.length-2]
+      path = parentEntry.path
     }
+
+    Toast.progress.start()
+    samba.list(path, res => {
+      this.filelist = res
+      Toast.progress.done()
+
+      if (entry) {
+        entryStack.push(entry)
+      } else {
+        entryStack.pop()
+      }
+    }, err => {
+      Toast.error(err)
+      Toast.progress.done()
+    })
+  },
+
+  onBack() {
+    if (currentPage) {
+      currentPage.hide()
+      currentPage = null
+      return
+    }
+    if (entryStack.length == 1) {
+      entryStack.pop()
+      this._listServers()
+      return
+    }
+    if (entryStack.length > 1) {
+      this._openDirectory()
+      return
+    }
+    navigator.app.exitApp()
   },
 
   onStatusTop() {
@@ -83,50 +144,95 @@ new Que({
     main.scrollTop = 0
   },
 
+  onSaveServer() {
+    if (!this.server.name) {
+      return Toast.error('别名不能为空')
+    }
+    if (!this.server.host) {
+      return Toast.error('主机名/IP不能为空')
+    }
+
+    this.server.path = `smb://${this.server.host}`
+    if (!this.server.host.endsWith('/')) {
+      this.server.path += '/'
+    }
+
+    const servers = Storage.get()
+    const index = this.server.index
+    this.server.type = SmbType.SERVER
+
+    if (index) {
+      delete this.server.index
+      servers.splice(index, 1, this.server)
+      this.filelist.splice(index, 1, Object.assign({}, this.server))
+    } else {
+      servers.push(this.server)
+      this.filelist.push(this.server)
+    }
+
+    Storage.save(servers)
+    this.onBack()
+    Toast.success('保存成功')
+  },
+
+  _listServers() {
+    this.filelist = Storage.get()
+  },
+
   /////////////////////////////////////////////////////////
   // Create entry actions
   /////////////////////////////////////////////////////////
 
   onAdd() {
-    Toast.actionSheet([{
-      label: '上传图片',
-      onClick: () => {
-        navigator.camera.getPicture(uri => this._upload(uri), null, {
-          quality: 100,
-          mediaType: Camera.MediaType.ALLMEDIA,
-          sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
-          destinationType: Camera.DestinationType.FILE_URI
-        })
-      }
-    }, {
-      label: '新建文本文件',
-      onClick: () => {
-        samba.mkfile(this.currentPath + '新建文本文件.txt', entry => {
-          this.filelist.push(entry)
-          Toast.success('新建成功')
-        }, err => {
-          Toast.error(err)
-        })
-      }
-    }, {
-      label: '新建文件夹',
-      onClick: () => {
-        samba.mkdir(this.currentPath + '新建文件夹/', entry => {
-          this.filelist.push(entry)
-          Toast.success('新建成功')
-        }, err => {
-          Toast.error(err)
-        })
-      }
-    }, {
+    const menus = [{
       label: '添加服务器',
-      onClick: null
-    }])
+      onClick: () => {
+        this.server = {}
+        currentPage = serverPage.show()
+      }
+    }]
+
+    const currentEntry = entryStack[entryStack.length-1]
+    if (currentEntry && currentEntry.type != SmbType.SERVER) {
+      menus.unshift({
+        label: '上传图片',
+        onClick: () => {
+          navigator.camera.getPicture(uri => this._upload(uri, currentEntry.path), null, {
+            quality: 100,
+            mediaType: Camera.MediaType.ALLMEDIA,
+            sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+            destinationType: Camera.DestinationType.FILE_URI
+          })
+        }
+      }, {
+        label: '新建文本文件',
+        onClick: () => {
+          samba.mkfile(currentEntry.path + '新建文本文件.txt', entry => {
+            this.filelist.push(entry)
+            Toast.success('新建成功')
+          }, err => {
+            Toast.error(err)
+          })
+        }
+      }, {
+        label: '新建文件夹',
+        onClick: () => {
+          samba.mkdir(currentEntry.path + '新建文件夹/', entry => {
+            this.filelist.push(entry)
+            Toast.success('新建成功')
+          }, err => {
+            Toast.error(err)
+          })
+        }
+      })
+    }
+
+    Toast.actionSheet(menus)
   },
 
-  _upload(uri) {
+  _upload(uri, path) {
     Toast.progress.start()
-      samba.upload(uri, this.currentPath, entry => {
+      samba.upload(uri, path, entry => {
         this.filelist.push(entry)
         Toast.success('上传成功')
         Toast.progress.done()
@@ -134,6 +240,65 @@ new Que({
         Toast.error(err)
         Toast.progress.done()
       });
+  },
+
+  /////////////////////////////////////////////////////////
+  // Single entry actions
+  /////////////////////////////////////////////////////////
+
+  onAction(e) {
+    navigator.vibrate(50)
+    const index = e.currentTarget.dataset.index
+    const entry = this.filelist[index]
+    if (entry.type == SmbType.SHARE) {
+      return
+    }
+
+    const menus = [{
+      label: '删除',
+      onClick: () => {
+        Toast.confirm('删除操作不可恢复，确定继续吗？', () => {
+          if (entry.type == SmbType.SERVER) {
+            Storage.remove(index)
+            this.filelist.splice(index, 1)
+            Toast.success('删除成功')
+          } else {
+            samba.delete(entry.path, () => {
+              this.filelist.splice(index, 1)
+              Toast.success('删除成功')
+            }, err => {
+              Toast.error(err)
+            })
+          }
+        })
+      }
+    }]
+
+    if (entryStack.length == 0) {
+      menus.unshift({
+        label: '编辑',
+        onClick: () => {
+          this.server = Object.assign({ index }, entry)
+          currentPage = serverPage.show()
+        }
+      })
+    }
+    Toast.actionSheet(menus)
+  },
+
+  _openFile(file, el) {
+    const type = this.getFileIcon(file.name)
+    if (type == 'text' || type == 'code') {
+      this._openText(file)
+    } else
+    if (type == 'image') {
+      this._openImage(file, el)
+    } else
+    if (type == 'video' || type == 'audio') {
+      this._openVideo(file, el)
+    } else {
+      Toast.info('该文件无法直接打开');
+    }
   },
 
   /////////////////////////////////////////////////////////
@@ -154,11 +319,11 @@ new Que({
   },
 
   _sortList(key) {
-    SORT_ASCEND[key] = !SORT_ASCEND[key]
-    Toast.info(SORT_ASCEND[key] ? '正序排列' : '倒序排列')
+    AscendSort[key] = !AscendSort[key]
+    Toast.info(AscendSort[key] ? '正序排列' : '倒序排列')
 
     this.filelist.sort(function(a, b) {
-      if (SORT_ASCEND[key]) {
+      if (AscendSort[key]) {
         return a[key] > b[key] ? 1 : -1
       } else {
         return a[key] < b[key] ? 1 : -1
@@ -167,72 +332,20 @@ new Que({
   },
 
   /////////////////////////////////////////////////////////
-  // Single entry actions
-  /////////////////////////////////////////////////////////
-
-  onAction(e) {
-    const index = e.currentTarget.dataset.index
-    const file = this.filelist[index]
-    navigator.vibrate(50)
-
-    Toast.actionSheet([{
-      label: '删除',
-      onClick: () => {
-        Toast.confirm('删除操作不可恢复，确定继续吗？', () => {
-            samba.delete(file.path, () => {
-              this.filelist.splice(index, 1)
-              Toast.success('删除成功')
-            }, err => {
-              Toast.error(err)
-            })
-        })
-      }
-    }])
-  },
-
-  _openDirectory(path) {
-    Toast.progress.start()
-    samba.list(path, res => {
-      this.filelist = res
-      this.currentPath = path
-      Toast.progress.done()
-    }, err => {
-      Toast.error(err)
-      Toast.progress.done()
-    })
-  },
-
-  _openFile(file, el) {
-    const type = this.getFileIcon(file.name)
-    if (type == 'text' || type == 'code') {
-      this._openText(file, el)
-    } else
-    if (type == 'image') {
-      this._openImage(file, el)
-    } else
-    if (type == 'video' || type == 'audio') {
-      this._openVideo(file, el)
-    } else {
-      Toast.info('该文件无法直接打开');
-    }
-  },
-
-  /////////////////////////////////////////////////////////
   // File viewer
   /////////////////////////////////////////////////////////
 
-  _buildViewer(el, className) {
-    const viewer = Toast.page(el.querySelector('.viewer'))
-    viewer.addClass(className)
+  _buildViewer(el) {
+    const viewer = Toast.page(el.querySelector('.image-page'))
     viewer.show()
-    window._openedPage = viewer
+    currentPage = viewer
     return viewer
   },
 
-  _openText(file, el) {
+  _openText(file) {
     textPage.show()
     textPage.querySelector('.appname').innerHTML = file.name
-    window._openedPage = textPage
+    currentPage = textPage
 
     Toast.progress.start()
     samba.read(file.path, bytes => {
@@ -243,12 +356,12 @@ new Que({
   },
 
   _openImage(file, el) {
-    const viewer = this._buildViewer(el, 'image-page')
+    const viewer = this._buildViewer(el)
     if (viewer.loaded) return
 
     Toast.loading.start()
     samba.read(file.path, bytes => {
-      const blob = new Blob([bytes], { type: 'image/' + this._getExtName(file.name) })
+      const blob = new Blob([bytes], { type: 'image/' + extname(file.name) })
       const url = URL.createObjectURL(blob)
 
       const image = new Image()
@@ -263,7 +376,7 @@ new Que({
   },
 
   _openVideo(file, el) {
-    const viewer = this._buildViewer(el, 'image-page')
+    const viewer = this._buildViewer(el)
     if (viewer.loaded) return
 
     // const mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
@@ -309,7 +422,7 @@ new Que({
           bufferView[i] = bytes[i];
         }
 
-      const mime = this.getFileIcon(file.name) + '/' + this._getExtName(file.name)
+      const mime = this.getFileIcon(file.name) + '/' + extname(file.name)
       const blob = new Blob([new Uint8Array(bytes)], { type: mime })
       let url = URL.createObjectURL(blob)
       url = url.replace(/%3A/g, ':');
@@ -332,13 +445,8 @@ new Que({
   // Utils
   /////////////////////////////////////////////////////////
 
-  _getExtName(name) {
-    const index = name.lastIndexOf('.')
-    return index > -1 ? name.substring(index + 1).toLowerCase() : ''
-  },
-
   getFileIcon(name) {
-    const ext = this._getExtName(name)
+    const ext = extname(name)
     let fileIcon = 'unknown'
 
     for (let key in FILE_ICONS) {
@@ -350,7 +458,8 @@ new Que({
     return fileIcon || ext
   },
 
-  formatTime(time = +new Date()) {
+  formatTime(time) {
+    if (!time) return
     const date = new Date(time + 8 * 3600 * 1000) // 格林威治时间增加8小时
     return date.toJSON().substr(0, 16).replace('T', ' ')
   },

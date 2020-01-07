@@ -30,11 +30,14 @@
   <div class="item" foreach="(item, index) in filelist" data-index="{{ index }}"
     @click="onOpen" @hammer.press="onAction">
 
-    <img class="icon" data-src="image/file/{{ item.isDirectory ? 'folder' : getFileIcon(item.name) }}.png"/>
+    <img class="icon" if="item.type==0" data-src="image/file/{{getFileIcon(item.name)}}.png"/>
+    <img class="icon" if="item.type==1" src="image/file/folder.png"/>
+    <img class="icon" if="item.type==4" src="image/file/server.png"/>
+    <img class="icon" if="item.type==8" src="image/file/share.png"/>
     <div class="filename">{{ item.name }}</div>
 
     <div class="metadata">
-      <div>{{ formatSize(item.size) }}</div>
+      <div>{{ item.host || formatSize(item.size) }}</div>
       <div>{{ formatTime(item.lastModified) }}</div>
     </div>
 
@@ -56,17 +59,17 @@
 <div class="server-page">
   <header>
     <div onclick="serverPage.hide()"><i class="back"></i></div>
-    <div class="appname">设置服务器</div>
+    <div class="appname">服务器设置</div>
     <div @click="onSaveServer"><i class="save"></i></div>
   </header>
   <main>
     <div class="item">
-      <div>名称：</div>
-      <input model="server.name" placeholder="0.0.0.0" />
+      <div>别名：</div>
+      <input model="server.name" placeholder="必填" />
     </div>
     <div class="item">
-      <div>地址：</div>
-      <input model="server.address" placeholder="0.0.0.0" />
+      <div>主机名/IP：</div>
+      <input model="server.host" placeholder="0.0.0.0/[path]" />
     </div>
     <div class="item">
       <div>用户名：</div>
@@ -77,7 +80,7 @@
       <input model="server.password" placeholder="可选" type="password" />
     </div>
     <div class="item">
-      <div>MAC：</div>
+      <div>MAC地址：</div>
       <input model="server.mac" placeholder="可选" />
     </div>
   </main>
