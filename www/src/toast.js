@@ -103,6 +103,7 @@ window.Toast = {
     `)
     // Add hide method to instance
     instance.hide = () => {
+      Toast.current = null
       panel.addClass('toast-scale-out')
       instance.addClass('toast-fade-out')
       instance.on('animationend', () => instance.remove())
@@ -125,6 +126,7 @@ window.Toast = {
     const panel = instance.querySelector('.toast-dialog-panel')
     panel.addClass('toast-scale-in')
     instance.addClass('toast-fade-in')
+    Toast.current = instance
     return instance
   },
 
@@ -147,7 +149,7 @@ window.Toast = {
    * })
    */
   confirm(message, callback) {
-    return instance = this.dialog({
+    return this.dialog({
       content: message,
       buttons: [{
         label: '确定',
@@ -272,6 +274,7 @@ window.Toast = {
     `)
     // Add hide method to instance
     instance.hide = () => {
+      Toast.current = null
       mask.addClass('toast-fade-out')
       sheet.addClass('toast-slide-down')
       sheet.on('animationend', () => instance.remove())
@@ -297,6 +300,7 @@ window.Toast = {
     document.body.appendChild(instance)
     mask.addClass('toast-fade-in')
     sheet.addClass('toast-slide-up')
+    Toast.current = instance
     return instance
   },
 

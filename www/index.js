@@ -122,6 +122,10 @@ new Que({
   },
 
   onBack() {
+    if (Toast.current) {
+      Toast.current.hide()
+      return
+    }
     if (currentPage) {
       currentPage.hide()
       currentPage = null
