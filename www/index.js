@@ -236,14 +236,14 @@ new Que({
 
   _upload(uri, path) {
     Toast.progress.start()
-      samba.upload(uri, path, entry => {
-        this.filelist.push(entry)
-        Toast.success('上传成功')
-        Toast.progress.done()
-      }, err => {
-        Toast.error(err)
-        Toast.progress.done()
-      });
+    samba.upload(uri, path, entry => {
+      this.filelist.push(entry)
+      Toast.success('上传成功')
+      Toast.progress.done()
+    }, err => {
+      Toast.error(err)
+      Toast.progress.done()
+    });
   },
 
   /////////////////////////////////////////////////////////
