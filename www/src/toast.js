@@ -22,10 +22,11 @@ window.Toast = {
    * Toast.progress.done()
    */
   progress: {
-    start() {
+    start(auto = true) {
       if (this.status) return
       this.instance = $('<div class="toast-progress"></div>')
       document.body.appendChild(this.instance)
+      if (!auto) return
 
       this.status = 1
       this._observe()
@@ -34,6 +35,10 @@ window.Toast = {
           this.status += Math.round(((100 - this.status) / 3) * Math.random())
         }
       }, 300)
+    },
+
+    tick(status) {
+      this.status = status
     },
 
     done() {

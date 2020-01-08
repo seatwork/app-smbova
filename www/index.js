@@ -235,7 +235,7 @@ new Que({
   },
 
   _upload(uri, path) {
-    Toast.progress.start()
+    Toast.progress.start(false)
     samba.upload(uri, path, entry => {
       this.filelist.push(entry)
       Toast.success('上传成功')
@@ -244,6 +244,10 @@ new Que({
       Toast.error(err)
       Toast.progress.done()
     });
+
+    samba.onUpload = progress => {
+      Toast.progress.tick(progress * 100)
+    }
   },
 
   /////////////////////////////////////////////////////////
