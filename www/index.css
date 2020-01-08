@@ -108,12 +108,19 @@ main .item .icon {
   background: #fff;
 }
 
-.text-page pre {
+.text-page .content {
   padding: 20px;
+  font-size: 14px;
   -moz-user-select: initial;
   -webkit-touch-callout: initial;
   -webkit-user-select: initial;
   user-select: initial;
+}
+
+.text-page .content.break-word {
+  word-break: normal;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .image-page {

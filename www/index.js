@@ -86,7 +86,7 @@ new Que({
     const index = e.currentTarget.dataset.index
     const entry = this.filelist[index]
 
-    if (entry.type == SmbType.SERVER && entry.username && entry.password) {
+    if (entry.type == SmbType.SERVER) {
       samba.auth(entry.username, entry.password)
     }
     if (entry.type > 0) {
@@ -280,6 +280,15 @@ new Que({
 
     if (entryStack.length == 0) {
       menus.unshift({
+        label: '网络唤醒',
+        onClick: () => {
+          samba.wol(entry.mac, (res) => {
+            Toast.success('广播成功')
+          }, err => {
+            Toast.error(err)
+          })
+        }
+      }, {
         label: '编辑',
         onClick: () => {
           this.server = Object.assign({ index }, entry)
@@ -291,14 +300,14 @@ new Que({
   },
 
   _openFile(file, el) {
-    const type = this.getFileIcon(file.name)
-    if (type == 'text' || type == 'code') {
+    file.icon = this.getFileIcon(file.name)
+    if (file.icon == 'text' || file.icon == 'code') {
       this._openText(file)
     } else
-    if (type == 'image') {
+    if (file.icon == 'image') {
       this._openImage(file, el)
     } else
-    if (type == 'video' || type == 'audio') {
+    if (file.icon == 'video' || file.icon == 'audio') {
       this._openVideo(file, el)
     } else {
       Toast.info('该文件无法直接打开');
@@ -347,14 +356,20 @@ new Que({
   },
 
   _openText(file) {
+    const content = textPage.querySelector('.content')
+    if (file.icon == 'text') {
+      content.addClass('break-word')
+    } else {
+      content.removeClass('break-word')
+    }
+
     textPage.show()
     textPage.querySelector('.appname').innerHTML = file.name
     currentPage = textPage
 
     Toast.progress.start()
     samba.read(file.path, bytes => {
-      const content = new TextDecoder("utf-8").decode(new Uint8Array(bytes))
-      textPage.querySelector('pre').innerHTML = content
+      content.textContent = new TextDecoder("utf-8").decode(new Uint8Array(bytes))
       Toast.progress.done()
     })
   },
