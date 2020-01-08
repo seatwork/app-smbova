@@ -73,6 +73,7 @@ new Que({
   },
 
   ready() {
+    window.pullRefresh = new PullRefresh()
     window.textPage = Toast.page(document.querySelector('.text-page'))
     window.serverPage = Toast.page(document.querySelector('.server-page'))
     this._listServers()
@@ -80,6 +81,15 @@ new Que({
 
   onDeviceReady() {
     document.addEventListener('backbutton', () => this.onBack())
+    pullRefresh.bind(document.querySelector('main'), () => {
+      const currentEntry = entryStack[entryStack.length-1]
+      if (currentEntry) {
+        this._openDirectory(currentEntry)
+      } else {
+        this._listServers()
+        pullRefresh.done()
+      }
+    })
   },
 
   onOpen(e) {
@@ -90,33 +100,28 @@ new Que({
       samba.auth(entry.username, entry.password)
     }
     if (entry.type > 0) {
-      this._openDirectory(entry)
+      this._openDirectory(entry, 1)
     } else {
       this._openFile(entry, e.currentTarget)
     }
   },
 
-  _openDirectory(entry) {
-    let path
-    if (entry) {
-      path = entry.path
-    } else {
-      const parentEntry = entryStack[entryStack.length-2]
-      path = parentEntry.path
-    }
-
+  _openDirectory(entry, direction = 0) {
     Toast.progress.start()
-    samba.list(path, res => {
+    samba.list(entry.path, res => {
       this.filelist = res
+      pullRefresh.done()
       Toast.progress.done()
 
-      if (entry) {
+      if (direction == 1) {
         entryStack.push(entry)
-      } else {
+      } else
+      if (direction == -1) {
         entryStack.pop()
       }
     }, err => {
       Toast.error(err)
+      pullRefresh.done()
       Toast.progress.done()
     })
   },
@@ -137,7 +142,8 @@ new Que({
       return
     }
     if (entryStack.length > 1) {
-      this._openDirectory()
+      const parentEntry = entryStack[entryStack.length-2]
+      this._openDirectory(parentEntry, -1)
       return
     }
     navigator.app.exitApp()
