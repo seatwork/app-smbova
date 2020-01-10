@@ -123,7 +123,7 @@ main .item .icon {
   white-space: pre-wrap;
 }
 
-.image-page {
+.image-page, .video-page {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -133,6 +133,10 @@ main .item .icon {
 .image-page img {
   max-width: 100%;
   max-height: 100%;
+}
+
+.video-page video {
+  width: 100%;
 }
 
 .server-page .item>div {

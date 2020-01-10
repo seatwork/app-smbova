@@ -75,6 +75,7 @@ new Que({
   ready() {
     window.pullRefresh = new PullRefresh()
     window.textPage = Toast.page(document.querySelector('.text-page'))
+    window.videoPage = Toast.page(document.querySelector('.video-page'))
     window.serverPage = Toast.page(document.querySelector('.server-page'))
     this._listServers()
   },
@@ -318,7 +319,7 @@ new Que({
       this._openImage(file, el)
     } else
     if (file.icon == 'video' || file.icon == 'audio') {
-      this._openVideo(file, el)
+      this._openVideo(file)
     } else {
       Toast.info('该文件无法直接打开');
     }
@@ -358,13 +359,6 @@ new Que({
   // File viewer
   /////////////////////////////////////////////////////////
 
-  _buildViewer(el) {
-    const viewer = Toast.page(el.querySelector('.image-page'))
-    viewer.show()
-    currentPage = viewer
-    return viewer
-  },
-
   _openText(file) {
     const content = textPage.querySelector('.content')
     if (file.icon == 'text') {
@@ -385,8 +379,9 @@ new Que({
   },
 
   _openImage(file, el) {
-    const viewer = this._buildViewer(el)
-    if (viewer.loaded) return
+    const imagePage = Toast.page(el.querySelector('.image-page'))
+    currentPage = imagePage.show()
+    if (imagePage.loaded) return
 
     Toast.loading.start()
     samba.read(file.path, bytes => {
@@ -397,77 +392,17 @@ new Que({
       image.src = url
       image.onload = function() {
         Toast.loading.done()
-        viewer.appendChild(image)
-        viewer.loaded = true
+        imagePage.appendChild(image)
+        imagePage.loaded = true
         URL.revokeObjectURL(url)
       }
     })
   },
 
-  _openVideo(file, el) {
-    const viewer = this._buildViewer(el)
-    if (viewer.loaded) return
-
-    // const mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
-    // const mediaSource = new MediaSource()
-    // const url = URL.createObjectURL(mediaSource)
-
-    // const video = $(`<video src="${url}" controls></video>`)
-    // viewer.appendChild(video)
-    // viewer.loaded = true
-    // video.onloadedmetadata = function(){
-    //   alert(123)
-    // }
-    // video.onerror = function(err, a){
-    //   Toast.error('err')
-    // }
-
-    // mediaSource.addEventListener('sourceopen', () => {
-    //   const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec)
-    //   // sourceBuffer.addEventListener("updateend", () => {
-    //   //   video.play()
-    //   //   mediaSource.endOfStream()
-    //   //   // URL.revokeObjectURL(video.src)
-    //   // })
-    //   Toast.success(123)
-
-    //   samba.read(file.path, bytes => {
-    //     Toast.success(bytes)
-    //     var arrayBuffer = new ArrayBuffer(bytes.length);
-    //     var bufferView = new Uint8Array(arrayBuffer);
-    //     for (i = 0; i < bytes.length; i++) {
-    //       bufferView[i] = bytes[i];
-    //     }
-
-    //     sourceBuffer.appendBuffer((bufferView))
-    //   })
-    // })
-
-    samba.read(file.path, bytes => {
-
-        var arrayBuffer = new ArrayBuffer(bytes.byteLength);
-        var bufferView = new Uint8Array(arrayBuffer);
-        for (i = 0; i < bytes.byteLength; i++) {
-          bufferView[i] = bytes[i];
-        }
-
-      const mime = this.getFileIcon(file.name) + '/' + extname(file.name)
-      const blob = new Blob([new Uint8Array(bytes)], { type: mime })
-      let url = URL.createObjectURL(blob)
-      url = url.replace(/%3A/g, ':');
-      Toast.success(url)
-      const video = $(`<audio src="${url}" controls></audio>`)
-      viewer.appendChild(video)
-      viewer.loaded = true
-
-      // video.onloadedmetadata = function(){
-      //   Toast.success(123)
-      // }
-      // video.onerror = function(err, a){
-      //   Toast.error('video err')
-      // }
-    })
-
+  _openVideo(file) {
+    const video = videoPage.querySelector('video')
+    video.src = 'http://10.0.0.2:8080/' + file.path;
+    currentPage = videoPage.show()
   },
 
   /////////////////////////////////////////////////////////
