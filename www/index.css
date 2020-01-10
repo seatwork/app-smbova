@@ -46,6 +46,9 @@ header>div.appname {
   flex: 1;
   font-weight: 700;
   justify-content: flex-start;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 header>div:active {

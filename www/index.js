@@ -360,16 +360,17 @@ new Que({
   /////////////////////////////////////////////////////////
 
   _openText(file) {
+    const title = textPage.querySelector('.appname')
     const content = textPage.querySelector('.content')
+    title.textContent = file.name
+    content.textContent = ''
+    currentPage = textPage.show()
+
     if (file.icon == 'text') {
       content.addClass('break-word')
     } else {
       content.removeClass('break-word')
     }
-
-    textPage.show()
-    textPage.querySelector('.appname').innerHTML = file.name
-    currentPage = textPage
 
     Toast.progress.start()
     samba.read(file.path, bytes => {
