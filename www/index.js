@@ -75,7 +75,6 @@ new Que({
   ready() {
     window.pullRefresh = new PullRefresh()
     window.textPage = Toast.page(document.querySelector('.text-page'))
-    window.videoPage = Toast.page(document.querySelector('.video-page'))
     window.serverPage = Toast.page(document.querySelector('.server-page'))
     this._listServers()
   },
@@ -109,7 +108,7 @@ new Que({
 
   _openDirectory(entry, direction = 0) {
     Toast.progress.start()
-    samba.list(entry.path, res => {
+    samba.listFiles(entry.path, res => {
       this.filelist = res
       pullRefresh.done()
       Toast.progress.done()
@@ -293,7 +292,7 @@ new Que({
       menus.unshift({
         label: '网络唤醒',
         onClick: () => {
-          samba.wol(entry.mac, (res) => {
+          samba.wakeOnLan(entry.mac, (res) => {
             Toast.success('广播成功')
           }, err => {
             Toast.error(err)
@@ -319,9 +318,9 @@ new Que({
       this._openImage(file, el)
     } else
     if (file.icon == 'video' || file.icon == 'audio') {
-      this._openVideo(file)
+      samba.openFile(file.path)
     } else {
-      Toast.info('该文件无法直接打开');
+      samba.openFile(file.path)
     }
   },
 
@@ -373,8 +372,8 @@ new Que({
     }
 
     Toast.progress.start()
-    samba.read(file.path, bytes => {
-      content.textContent = new TextDecoder("utf-8").decode(new Uint8Array(bytes))
+    samba.readAsText(file.path, text => {
+      content.textContent = text
       Toast.progress.done()
     })
   },
@@ -385,7 +384,7 @@ new Que({
     if (imagePage.loaded) return
 
     Toast.loading.start()
-    samba.read(file.path, bytes => {
+    samba.readAsByteArray(file.path, bytes => {
       const blob = new Blob([bytes], { type: 'image/' + extname(file.name) })
       const url = URL.createObjectURL(blob)
 
@@ -398,12 +397,6 @@ new Que({
         URL.revokeObjectURL(url)
       }
     })
-  },
-
-  _openVideo(file) {
-    const video = videoPage.querySelector('video')
-    video.src = 'http://10.0.0.2:8080/' + file.path;
-    currentPage = videoPage.show()
   },
 
   /////////////////////////////////////////////////////////
