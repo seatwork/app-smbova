@@ -318,7 +318,7 @@ new Que({
       this._openImage(file, el)
     } else
     if (file.icon == 'video' || file.icon == 'audio') {
-      samba.openFile(file.path)
+      samba.openMedia(file.path)
     } else {
       samba.openFile(file.path)
     }
