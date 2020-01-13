@@ -76,6 +76,7 @@ new Que({
     window.pullRefresh = new PullRefresh()
     window.textPage = Toast.page(document.querySelector('.text-page'))
     window.serverPage = Toast.page(document.querySelector('.server-page'))
+    window.needFingerprint = document.querySelector('#needFingerprint')
     this._listServers()
   },
 
@@ -98,7 +99,13 @@ new Que({
 
     if (entry.type == SmbType.SERVER) {
       samba.auth(entry.username, entry.password)
+
+      if (entry.needFingerprint) {
+        this._fingerprintAuth(() => this._openDirectory(entry, 1))
+        return
+      }
     }
+
     if (entry.type > 0) {
       this._openDirectory(entry, 1)
     } else {
@@ -162,6 +169,7 @@ new Que({
       return Toast.error('主机名/IP不能为空')
     }
 
+    this.server.needFingerprint = needFingerprint.checked
     this.server.path = `smb://${this.server.host}`
     if (!this.server.host.endsWith('/')) {
       this.server.path += '/'
@@ -189,6 +197,20 @@ new Que({
     this.filelist = Storage.get()
   },
 
+  _fingerprintAuth(callback) {
+    FingerprintAuth.encrypt({
+        clientId: Storage.key,
+        maxAttempts: 5,
+        disableBackup: true,
+        userAuthRequired: false,
+        encryptNoAuth: false,
+        locale: "zh_CN",
+        dialogTitle: '指纹登录',
+    }, res => {
+      if (res && res.token) callback()
+    })
+  },
+
   /////////////////////////////////////////////////////////
   // Create entry actions
   /////////////////////////////////////////////////////////
@@ -198,6 +220,7 @@ new Que({
       label: '添加服务器',
       onClick: () => {
         this.server = {}
+        needFingerprint.checked = false
         currentPage = serverPage.show()
       }
     }]
@@ -301,12 +324,21 @@ new Que({
       }, {
         label: '编辑',
         onClick: () => {
-          this.server = Object.assign({ index }, entry)
-          currentPage = serverPage.show()
+          if (entry.needFingerprint) {
+            this._fingerprintAuth(() => this._editServer(entry, index))
+          } else {
+            this._editServer(entry, index)
+          }
         }
       })
     }
     Toast.actionSheet(menus)
+  },
+
+  _editServer(entry, index) {
+    this.server = Object.assign({ index }, entry)
+    needFingerprint.checked = entry.needFingerprint
+    currentPage = serverPage.show()
   },
 
   _openFile(file, el) {

@@ -65,23 +65,27 @@
   <main>
     <div class="item">
       <div>别名：</div>
-      <input model="server.name" placeholder="必填" />
+      <input type="text" model="server.name" placeholder="必填" />
     </div>
     <div class="item">
       <div>主机名/IP：</div>
-      <input model="server.host" placeholder="0.0.0.0/[path]" />
+      <input type="text" model="server.host" placeholder="0.0.0.0/[path]" />
     </div>
     <div class="item">
       <div>用户名：</div>
-      <input model="server.username" placeholder="可选" />
+      <input type="text" model="server.username" placeholder="可选" />
     </div>
     <div class="item">
       <div>密码：</div>
-      <input model="server.password" placeholder="可选" type="password" />
+      <input type="text" model="server.password" placeholder="可选" type="password" />
     </div>
     <div class="item">
       <div>MAC地址：</div>
-      <input model="server.mac" placeholder="FF:FF:FF:FF:FF:FF" />
+      <input type="text" model="server.mac" placeholder="FF:FF:FF:FF:FF:FF" />
+    </div>
+    <div class="item">
+      <div>指纹登录：</div>
+      <input type="checkbox" class="toast-switch" id="needFingerprint" />
     </div>
   </main>
 </div>
