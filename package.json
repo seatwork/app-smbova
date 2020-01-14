@@ -30,8 +30,8 @@
       "cordova-plugin-camera": {
         "ANDROID_SUPPORT_V4_VERSION": "27.+"
       },
-      "cordova-plugin-samba": {},
-      "cordova-plugin-android-fingerprint-auth": {}
+      "cordova-plugin-android-fingerprint-auth": {},
+      "cordova-plugin-samba": {}
     },
     "platforms": [
       "browser",
