@@ -195,6 +195,9 @@ new Que({
 
   _listServers() {
     this.filelist = Storage.get()
+    if (this.filelist.length == 0) {
+      Toast.info("尚未添加服务器")
+    }
   },
 
   _fingerprintAuth(callback) {
