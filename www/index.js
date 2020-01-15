@@ -75,7 +75,6 @@ new Que({
   ready() {
     window.pullRefresh = new PullRefresh()
     window.textPage = Toast.page(document.querySelector('.text-page'))
-    window.imagePage = Toast.page(document.querySelector('.image-page'))
     window.serverPage = Toast.page(document.querySelector('.server-page'))
     window.needFingerprint = document.querySelector('#needFingerprint')
     this._listServers()
@@ -351,7 +350,7 @@ new Que({
       this._openText(file)
     } else
     if (file.icon == 'image') {
-      this._openImage(file)
+      samba.openImage(file.path)
     } else
     if (file.icon == 'video' || file.icon == 'audio') {
       samba.openMedia(file.path)
@@ -411,25 +410,6 @@ new Que({
     samba.readAsText(file.path, text => {
       content.textContent = text
       Toast.progress.done()
-    })
-  },
-
-  _openImage(file) {
-    const image = imagePage.querySelector('img')
-    image.removeAttribute('src')
-    pinchZoom(image)
-    currentPage = imagePage.show()
-
-    Toast.loading.start()
-    samba.readAsByteArray(file.path, bytes => {
-      const blob = new Blob([bytes], { type: 'image/' + extname(file.name) })
-      const url = URL.createObjectURL(blob)
-
-      image.src = url
-      image.onload = function() {
-        Toast.loading.done()
-        URL.revokeObjectURL(url)
-      }
     })
   },
 
