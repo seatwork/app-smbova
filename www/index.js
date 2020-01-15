@@ -75,6 +75,7 @@ new Que({
   ready() {
     window.pullRefresh = new PullRefresh()
     window.textPage = Toast.page(document.querySelector('.text-page'))
+    window.imagePage = Toast.page(document.querySelector('.image-page'))
     window.serverPage = Toast.page(document.querySelector('.server-page'))
     window.needFingerprint = document.querySelector('#needFingerprint')
     this._listServers()
@@ -275,7 +276,7 @@ new Que({
     }, err => {
       Toast.error(err)
       Toast.progress.done()
-    });
+    })
 
     samba.onUpload = progress => {
       Toast.progress.tick(progress * 100)
@@ -350,7 +351,7 @@ new Que({
       this._openText(file)
     } else
     if (file.icon == 'image') {
-      this._openImage(file, el)
+      this._openImage(file)
     } else
     if (file.icon == 'video' || file.icon == 'audio') {
       samba.openMedia(file.path)
@@ -413,22 +414,20 @@ new Que({
     })
   },
 
-  _openImage(file, el) {
-    const imagePage = Toast.page(el.querySelector('.image-page'))
+  _openImage(file) {
+    const image = imagePage.querySelector('img')
+    image.removeAttribute('src')
+    pinchZoom(image)
     currentPage = imagePage.show()
-    if (imagePage.loaded) return
 
     Toast.loading.start()
     samba.readAsByteArray(file.path, bytes => {
       const blob = new Blob([bytes], { type: 'image/' + extname(file.name) })
       const url = URL.createObjectURL(blob)
 
-      const image = new Image()
       image.src = url
       image.onload = function() {
         Toast.loading.done()
-        imagePage.appendChild(image)
-        imagePage.loaded = true
         URL.revokeObjectURL(url)
       }
     })
@@ -445,7 +444,7 @@ new Que({
     for (let key in FILE_ICONS) {
       if (FILE_ICONS[key].includes(ext)) {
         fileIcon = key
-        break;
+        break
       }
     }
     return fileIcon || ext
