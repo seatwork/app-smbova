@@ -65,6 +65,7 @@ new Que({
   data: {
     filelist: [],
     server: {},
+    progress: '',
   },
 
   ready() {
@@ -88,7 +89,10 @@ new Que({
     })
 
     samba.onUpload = samba.onDownload = progress => {
-      Toast.progress.tick(progress * 100)
+      progress = parseInt(progress * 100)
+      Toast.progress.tick(progress)
+      this.progress = progress + '%'
+      if (progress >= 100) this.progress = ''
     }
   },
 
@@ -114,7 +118,7 @@ new Que({
 
   _openDirectory(entry, direction = 0) {
     Toast.progress.start()
-    samba.listFiles(entry.path, res => {
+    samba.listEntries(entry.path, res => {
       this.filelist = res
       pullRefresh.done()
       Toast.progress.done()
@@ -242,7 +246,7 @@ new Que({
       }, {
         label: '新建文本文件',
         onClick: () => {
-          samba.mkfile(currentEntry.path + '新建文本文件.txt', entry => {
+          samba.createFile(currentEntry.path + '新建文本文件.txt', entry => {
             this.filelist.push(entry)
             Toast.success('新建成功')
           }, err => {
@@ -252,7 +256,7 @@ new Que({
       }, {
         label: '新建文件夹',
         onClick: () => {
-          samba.mkdir(currentEntry.path + '新建文件夹/', entry => {
+          samba.createDirectory(currentEntry.path + '新建文件夹/', entry => {
             this.filelist.push(entry)
             Toast.success('新建成功')
           }, err => {
@@ -356,7 +360,7 @@ new Que({
   },
 
   _openFile(file, el) {
-    file.icon = this.getFileIcon(file.name)
+    file.icon = this.getFileIcon(file.ext)
     if (file.icon == 'text' || file.icon == 'code') {
       this._openText(file)
     } else
@@ -428,15 +432,8 @@ new Que({
   // Utils
   /////////////////////////////////////////////////////////
 
-  extname(name) {
-    const index = name.lastIndexOf('.')
-    return index > -1 ? name.substring(index + 1).toLowerCase() : ''
-  },
-
-  getFileIcon(name) {
-    const ext = this.extname(name)
+  getFileIcon(ext) {
     let fileIcon = 'unknown'
-
     for (let key in FILE_ICONS) {
       if (FILE_ICONS[key].includes(ext)) {
         fileIcon = key
