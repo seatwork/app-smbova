@@ -86,6 +86,10 @@ new Que({
         pullRefresh.done()
       }
     })
+
+    samba.onUpload = samba.onDownload = progress => {
+      Toast.progress.tick(progress * 100)
+    }
   },
 
   onOpen(e) {
@@ -271,10 +275,6 @@ new Que({
       Toast.error(err)
       Toast.progress.done()
     })
-
-    samba.onUpload = progress => {
-      Toast.progress.tick(progress * 100)
-    }
   },
 
   /////////////////////////////////////////////////////////
@@ -308,6 +308,22 @@ new Que({
         })
       }
     }]
+
+    if (entry.type == SmbType.FILE) {
+      menus.unshift({
+        label: '下载',
+        onClick: () => {
+          Toast.progress.start(false)
+          samba.download(entry.path, localPath => {
+            Toast.success('下载完成：' + localPath)
+            Toast.progress.done()
+          }, err => {
+            Toast.error(err)
+            Toast.progress.done()
+          })
+        }
+      })
+    }
 
     if (entryStack.length == 0) {
       menus.unshift({
