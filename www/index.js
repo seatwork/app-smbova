@@ -38,11 +38,6 @@ const AscendSort = {
   lastModified: false
 }
 
-const extname = function(name) {
-  const index = name.lastIndexOf('.')
-  return index > -1 ? name.substring(index + 1).toLowerCase() : ''
-}
-
 const Storage = {
   key: 'SAMBA_SERVER_STORAGE_KEY',
 
@@ -417,8 +412,13 @@ new Que({
   // Utils
   /////////////////////////////////////////////////////////
 
+  extname(name) {
+    const index = name.lastIndexOf('.')
+    return index > -1 ? name.substring(index + 1).toLowerCase() : ''
+  },
+
   getFileIcon(name) {
-    const ext = extname(name)
+    const ext = this.extname(name)
     let fileIcon = 'unknown'
 
     for (let key in FILE_ICONS) {

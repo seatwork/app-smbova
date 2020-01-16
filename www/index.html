@@ -37,7 +37,7 @@
     <div class="filename">{{ item.name }}</div>
 
     <div class="metadata">
-      <div>{{ item.host || formatSize(item.size) }}</div>
+      <div>{{ item.host || formatSize(item.size) }} {{ extname(item.name).toUpperCase() }}</div>
       <div>{{ formatTime(item.lastModified) }}</div>
     </div>
   </div>
