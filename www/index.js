@@ -88,7 +88,7 @@ new Que({
       }
     })
 
-    samba.onUpload = samba.onDownload = progress => {
+    samba.onProgress = progress => {
       progress = parseInt(progress * 100)
       Toast.progress.tick(progress)
       this.progress = progress + '%'
