@@ -36,7 +36,7 @@ const SmbType = {
 }
 
 const AscendSort = {
-  name: false,
+  name: true,
   size: false,
   lastModified: false
 }
