@@ -203,6 +203,8 @@ new Que({
     this.filelist = Storage.get()
     if (this.filelist.length == 0) {
       Toast.info("尚未添加服务器")
+    } else {
+      this._sortList('name', true)
     }
   },
 
@@ -384,22 +386,25 @@ new Que({
   onSort() {
     Toast.actionSheet([{
       label: '按文件名排序',
-      onClick: () => this._sortList('name')
+      onClick: () => this._reverseList('name')
     }, {
       label: '按时间排序',
-      onClick: () => this._sortList('lastModified')
+      onClick: () => this._reverseList('lastModified')
     }, {
       label: '按大小排序',
-      onClick: () => this._sortList('size')
+      onClick: () => this._reverseList('size')
     }])
   },
 
-  _sortList(key) {
+  _reverseList(key) {
     AscendSort[key] = !AscendSort[key]
+    this._sortList(key, AscendSort[key])
     Toast.info(AscendSort[key] ? '正序排列' : '倒序排列')
+  },
 
+  _sortList(key, order) {
     this.filelist.sort(function(a, b) {
-      if (AscendSort[key]) {
+      if (order) {
         return a[key] > b[key] ? 1 : -1
       } else {
         return a[key] < b[key] ? 1 : -1
