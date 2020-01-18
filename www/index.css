@@ -55,6 +55,12 @@ header>div.appname {
   overflow: hidden;
 }
 
+header>div.appname>span {
+  font-weight: 400;
+  margin-left: 10px;
+  color: #ccc;
+}
+
 header>div:active {
   background: #eee;
 }

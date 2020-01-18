@@ -21,8 +21,11 @@ const FILE_ICONS = {
   audio: ['aac', 'aiff', 'ape', 'caf', 'flac', 'm3u', 'm4a', 'mp3', 'ogg', 'wav', 'wma'],
   video: ['3gp', 'asf', 'avi', 'flv', 'm3u8', 'm4u', 'm4v', 'mkv', 'mov', 'mp4', 'mpa', 'mpe', 'mpeg', 'mpg', 'ogm', 'rm', 'rmvb', 'vob', 'webm', 'wmv'],
   font:  ['eot', 'otf', 'ttf', 'woff', 'woff2'],
+  doc: ['doc', 'docx'],
+  ppt: ['ppt', 'pptx'],
+  xls: ['xls', 'xlsx'],
   zip:   ['7z', 'gz', 'gzip', 'jar', 'rar', 'tar', 'z', 'zip'],
-  '':    ['ai', 'apk', 'doc', 'exe', 'pdf', 'ppt', 'psd', 'swf', 'torrent', 'xls']
+  '':    ['ai', 'apk', 'exe', 'pdf', 'psd', 'swf', 'torrent']
 }
 
 const SmbType = {
@@ -296,7 +299,7 @@ new Que({
     const menus = [{
       label: '删除',
       onClick: () => {
-        Toast.confirm('删除操作不可恢复，确定继续吗？', () => {
+        Toast.confirm('删除后不可恢复，确定继续吗？', () => {
           if (entry.type == SmbType.SERVER) {
             Storage.remove(index)
             this.filelist.splice(index, 1)

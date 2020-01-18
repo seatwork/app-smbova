@@ -21,7 +21,7 @@
 
 <header>
   <div @click="onBack"><i class="back"></i></div>
-  <div @click="onStatusTop" class="appname">SMBOVA</div>
+  <div @click="onStatusTop" class="appname">SMBOVA <span>({{ filelist.length }})</span></div>
   <div class="transfer-progress">{{ progress }}</div>
   <div @click="onAdd"><i class="add"></i></div>
   <div @click="onSort"><i class="sort"></i></div>
