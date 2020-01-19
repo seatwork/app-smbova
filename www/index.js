@@ -183,26 +183,23 @@ new Que({
       return Toast.error('主机名/IP不能为空')
     }
 
+    this.server.type = SmbType.SERVER
     this.server.needFingerprint = needFingerprint.checked
     this.server.path = `smb://${this.server.host}`
     if (!this.server.host.endsWith('/')) {
       this.server.path += '/'
     }
 
-    const servers = Storage.get()
     const index = this.server.index
-    this.server.type = SmbType.SERVER
-
-    if (index) {
+    if (index !== undefined) {
       delete this.server.index
-      servers.splice(index, 1, this.server)
       this.filelist.splice(index, 1, Object.assign({}, this.server))
     } else {
-      servers.push(this.server)
       this.filelist.push(this.server)
     }
 
-    Storage.save(servers)
+    this._sortList('name', true)
+    Storage.save(this.filelist)
     this.onBack()
     Toast.success('保存成功')
   },
@@ -211,8 +208,6 @@ new Que({
     this.filelist = Storage.get()
     if (this.filelist.length == 0) {
       Toast.info("尚未添加服务器")
-    } else {
-      this._sortList('name', true)
     }
   },
 
@@ -341,10 +336,11 @@ new Que({
       }, {
         label: '编辑',
         onClick: () => {
+          entry.index = index
           if (entry.needFingerprint) {
-            fingerprint.auth(() => this._editServer(entry, index))
+            fingerprint.auth(() => this._editServer(entry))
           } else {
-            this._editServer(entry, index)
+            this._editServer(entry)
           }
         }
       })
@@ -352,8 +348,8 @@ new Que({
     Toast.actionSheet(menus)
   },
 
-  _editServer(entry, index) {
-    this.server = Object.assign({ index }, entry)
+  _editServer(entry) {
+    this.server = Object.assign({}, entry)
     needFingerprint.checked = entry.needFingerprint
     currentPage = serverPage.show()
   },
