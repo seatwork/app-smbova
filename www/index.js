@@ -167,7 +167,7 @@ new Que({
       this._openDirectory(parentEntry, -1)
       return
     }
-    navigator.app.exitApp()
+    samba.runBackground()
   },
 
   onStatusTop() {
