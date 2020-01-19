@@ -115,7 +115,7 @@ new Que({
       samba.auth(entry.username, entry.password)
 
       if (entry.needFingerprint) {
-        this._fingerprintAuth(() => this._openDirectory(entry, 1))
+        fingerprint.auth(() => this._openDirectory(entry, 1))
         return
       }
     }
@@ -214,20 +214,6 @@ new Que({
     } else {
       this._sortList('name', true)
     }
-  },
-
-  _fingerprintAuth(callback) {
-    FingerprintAuth.encrypt({
-        clientId: Storage.key,
-        maxAttempts: 5,
-        disableBackup: true,
-        userAuthRequired: false,
-        encryptNoAuth: false,
-        locale: "zh_CN",
-        dialogTitle: '指纹登录',
-    }, res => {
-      if (res && res.token) callback()
-    })
   },
 
   /////////////////////////////////////////////////////////
@@ -356,7 +342,7 @@ new Que({
         label: '编辑',
         onClick: () => {
           if (entry.needFingerprint) {
-            this._fingerprintAuth(() => this._editServer(entry, index))
+            fingerprint.auth(() => this._editServer(entry, index))
           } else {
             this._editServer(entry, index)
           }
