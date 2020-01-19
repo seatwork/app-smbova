@@ -16,7 +16,7 @@ window.onerror = function(msg, url, line) {
 
 const FILE_ICONS = {
   text:  ['ass', 'log', 'md', 'rss', 'srt', 'ssa', 'txt'],
-  code:  ['as', 'asp', 'bat', 'c', 'cs', 'css', 'h', 'htm', 'html', 'ini', 'java', 'js', 'json', 'php', 'prop', 'py', 'reg', 'sh', 'sql', 'wxml', 'wxss', 'xhtml', 'xml'],
+  code:  ['as', 'asp', 'aspx', 'bat', 'c', 'cs', 'css', 'h', 'htm', 'html', 'ini', 'java', 'js', 'json', 'php', 'properties', 'py', 'reg', 'sh', 'sql', 'wxml', 'wxss', 'xhtml', 'xml'],
   image: ['bmp', 'cur', 'eps', 'gif', 'ico', 'jpe', 'jpg', 'jpeg', 'jpz', 'png', 'svg', 'tif', 'tiff'],
   audio: ['aac', 'aiff', 'ape', 'caf', 'flac', 'm3u', 'm4a', 'mp3', 'ogg', 'wav', 'wma'],
   video: ['3gp', 'asf', 'avi', 'flv', 'm3u8', 'm4u', 'm4v', 'mkv', 'mov', 'mp4', 'mpa', 'mpe', 'mpeg', 'mpg', 'ogm', 'rm', 'rmvb', 'vob', 'webm', 'wmv'],
@@ -26,6 +26,14 @@ const FILE_ICONS = {
   xls: ['xls', 'xlsx'],
   zip:   ['7z', 'gz', 'gzip', 'jar', 'rar', 'tar', 'z', 'zip'],
   '':    ['ai', 'apk', 'exe', 'pdf', 'psd', 'swf', 'torrent']
+}
+
+const PRISM_LANGUAGES = {
+  as: 'actionscript',
+  asp: 'aspnet',
+  aspx: 'aspnet',
+  bat: 'bash',
+  sh: 'shell'
 }
 
 const SmbType = {
@@ -420,7 +428,7 @@ new Que({
     const title = textPage.querySelector('.appname')
     const content = textPage.querySelector('.content')
     title.textContent = file.name
-    content.textContent = ''
+    content.innerHTML = ''
     currentPage = textPage.show()
 
     if (file.icon == 'text') {
@@ -431,8 +439,13 @@ new Que({
 
     Toast.progress.start()
     samba.readAsText(file.path, text => {
-      content.textContent = text
       Toast.progress.done()
+      const lang = PRISM_LANGUAGES[file.ext] || file.ext
+      if (Prism.languages[lang]) {
+        content.innerHTML = Prism.highlight(text, Prism.languages[lang])
+      } else {
+        content.innerHTML = text
+      }
     })
   },
 
