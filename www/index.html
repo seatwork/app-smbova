@@ -33,12 +33,16 @@
   <div class="item" foreach="(item, index) in filelist" data-index="{{ index }}"
     @click="onOpen" @hammer.press="onAction">
 
-    <img class="icon" if="item.type==0" data-src="image/file/{{getFileIcon(item.ext)}}.png"/>
-    <img class="icon" if="item.type==1" src="image/file/folder.png"/>
-    <img class="icon" if="item.type==4" src="image/file/server.png"/>
-    <img class="icon" if="item.type==8" src="image/file/share.png"/>
-    <div class="filename">{{ item.name }}</div>
+    <div class="icon" if="item.isRoot">
+      <img src="image/file/server.png"/>
+    </div>
+    <div class="icon" else>
+      <img if="item.type==0" data-src="image/file/{{getFileIcon(item.ext)}}.png"/>
+      <img if="item.type==1" src="image/file/folder.png"/>
+      <img if="item.type==8" src="image/file/share.png"/>
+    </div>
 
+    <div class="filename">{{ item.name }}</div>
     <div class="metadata">
       <div>{{ item.host || formatSize(item.size) }} {{ (item.ext || "").toUpperCase() }}</div>
       <div>{{ formatTime(item.lastModified) }}</div>

@@ -111,7 +111,7 @@ new Que({
     const index = e.currentTarget.dataset.index
     const entry = this.filelist[index]
 
-    if (entry.type == SmbType.SERVER) {
+    if (entry.isRoot) {
       samba.auth(entry.username, entry.password)
 
       if (entry.needFingerprint) {
@@ -183,12 +183,11 @@ new Que({
       return Toast.error('主机名/IP不能为空')
     }
 
-    this.server.type = SmbType.SERVER
+    const host = this._parseHost(this.server.host)
+    this.server.type = host.type
+    this.server.path = host.path
     this.server.needFingerprint = needFingerprint.checked
-    this.server.path = `smb://${this.server.host}`
-    if (!this.server.host.endsWith('/')) {
-      this.server.path += '/'
-    }
+    this.server.isRoot = true
 
     const index = this.server.index
     if (index !== undefined) {
@@ -202,6 +201,20 @@ new Que({
     Storage.save(this.filelist)
     this.onBack()
     Toast.success('保存成功')
+  },
+
+  _parseHost(host) {
+    let path, subpath = ''
+    if (!host.endsWith('/')) {
+      path = host + '/'
+    }
+    if (host.indexOf('/') > -1) {
+      subpath = host.substring(host.indexOf('/') + 1)
+    }
+    return {
+      type: subpath ? SmbType.SHARE : SmbType.SERVER,
+      path: 'smb://' + path
+    }
   },
 
   _listServers() {
@@ -226,7 +239,8 @@ new Que({
     }]
 
     const currentEntry = entryStack[entryStack.length-1]
-    if (currentEntry && currentEntry.type != SmbType.SERVER) {
+    if (currentEntry && (currentEntry.type == SmbType.SHARE
+      || currentEntry.type == SmbType.DIRECTORY)) {
       menus.unshift({
         label: '上传图片',
         onClick: () => {
@@ -283,7 +297,7 @@ new Que({
     navigator.vibrate(50)
     const index = e.currentTarget.dataset.index
     const entry = this.filelist[index]
-    if (entry.type == SmbType.SHARE) {
+    if (!entry.isRoot && entry.type == SmbType.SHARE) {
       return
     }
 
@@ -291,7 +305,7 @@ new Que({
       label: '删除',
       onClick: () => {
         Toast.confirm('删除后不可恢复，确定继续吗？', () => {
-          if (entry.type == SmbType.SERVER) {
+          if (entry.isRoot) {
             Storage.remove(index)
             this.filelist.splice(index, 1)
             Toast.success('删除成功')
@@ -307,23 +321,7 @@ new Que({
       }
     }]
 
-    if (entry.type == SmbType.FILE) {
-      menus.unshift({
-        label: '下载',
-        onClick: () => {
-          Toast.progress.start(false)
-          samba.download(entry.path, localPath => {
-            Toast.success('下载完成：' + localPath)
-            Toast.progress.done()
-          }, err => {
-            Toast.error(err)
-            Toast.progress.done()
-          })
-        }
-      })
-    }
-
-    if (entryStack.length == 0) {
+    if (entry.isRoot) {
       menus.unshift({
         label: '网络唤醒',
         onClick: () => {
@@ -344,7 +342,23 @@ new Que({
           }
         }
       })
+    } else
+    if (entry.type == SmbType.FILE) {
+      menus.unshift({
+        label: '下载',
+        onClick: () => {
+          Toast.progress.start(false)
+          samba.download(entry.path, localPath => {
+            Toast.success('下载完成：' + localPath)
+            Toast.progress.done()
+          }, err => {
+            Toast.error(err)
+            Toast.progress.done()
+          })
+        }
+      })
     }
+
     Toast.actionSheet(menus)
   },
 

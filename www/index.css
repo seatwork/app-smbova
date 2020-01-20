@@ -124,6 +124,12 @@ main .item:active {
 }
 
 main .item .icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main .item img {
   width: 30px;
   height: 30px;
 }
