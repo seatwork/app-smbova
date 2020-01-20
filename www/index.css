@@ -88,6 +88,7 @@ main .item {
   align-items: center;
   height: 50px;
   padding: 0 20px;
+  margin-top: -1px;
 }
 
 main .item:after {
