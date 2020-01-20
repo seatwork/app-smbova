@@ -83,11 +83,25 @@ main {
 }
 
 main .item {
+  position: relative;
   display: flex;
   align-items: center;
   height: 50px;
   padding: 0 20px;
-  border-bottom: #eee 1px solid;
+}
+
+main .item:after {
+  content: '';
+  position: absolute;
+  left: 60px;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #eee;
+}
+
+main .item:last-child:after {
+  left: 0;
 }
 
 main .item .filename {
@@ -109,8 +123,8 @@ main .item:active {
 }
 
 main .item .icon {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
 }
 
 /* ----------------------------------------------
