@@ -325,7 +325,7 @@ new Que({
       menus.unshift({
         label: '网络唤醒',
         onClick: () => {
-          samba.wakeOnLan(entry.mac, (res) => {
+          samba.wakeOnLan(entry.mac, parseInt(entry.port) || 0, res => {
             Toast.success('广播成功')
           }, err => {
             Toast.error(err)
